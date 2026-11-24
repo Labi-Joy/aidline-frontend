@@ -6,12 +6,32 @@ import { Container } from '@/components/ui/Container';
 import { Notice } from '@/components/ui/Notice';
 import { api } from '@/lib/api';
 import { explorer } from '@/lib/config';
-import { shortAddress } from '@/lib/format';
+import { formatAmount, shortAddress } from '@/lib/format';
 import { safe } from '@/lib/safe';
-import { getBondRequirement, getBondWithdrawDelay } from '@/lib/stellar/balance';
+import {
+  getBondRequirement,
+  getBondWithdrawDelay,
+  getVerifierBond,
+  type VerifierBond,
+} from '@/lib/stellar/balance';
 import { safeExternalUrl } from '@/lib/url';
 
 export const metadata: Metadata = { title: 'Verifiers' };
+
+function formatVerifierBond(bond: VerifierBond | null): string {
+  if (!bond || bond.amount <= 0n || bond.status === 'Withdrawn') {
+    return 'No bond';
+  }
+  if (bond.status === 'Slashed') {
+    return bond.remaining > 0n
+      ? `Bond: ${formatAmount(bond.remaining)} (slashed)`
+      : 'Bond: slashed';
+  }
+  if (bond.status === 'PendingWithdrawal') {
+    return `Bond: ${formatAmount(bond.remaining)} (withdrawing)`;
+  }
+  return `Bond: ${formatAmount(bond.remaining)}`;
+}
 
 export default async function VerifiersPage() {
   const [verifiers, bondRequirement, bondWithdrawDelay] = await Promise.all([
@@ -19,6 +39,11 @@ export default async function VerifiersPage() {
     safe(getBondRequirement),
     safe(getBondWithdrawDelay),
   ]);
+  const bonds = verifiers
+    ? await Promise.all(
+        verifiers.items.map((v) => safe(() => getVerifierBond(v.address))),
+      )
+    : [];
   return (
     <Container className="pt-12">
       <p className="kicker">Verifiers</p>
@@ -29,6 +54,10 @@ export default async function VerifiersPage() {
         Verifiers are independent organisations close to the ground: NGOs, auditors, community
         groups. Only a verifier can release a milestone, and every release carries their name and
         evidence.
+      </p>
+      <p className="mt-3 max-w-2xl text-[0.9375rem] text-ink-soft">
+        Verifiers can lock a token bond on chain as a public stake in their honesty. If a verifier
+        approves false or bad work, that bond can be slashed to hold them accountable.
       </p>
 
       <section className="mt-12">
@@ -46,8 +75,9 @@ export default async function VerifiersPage() {
           </p>
         ) : (
           <ul className="border-t border-rule">
-            {verifiers.items.map((v) => {
+            {verifiers.items.map((v, index) => {
               const website = safeExternalUrl(v.website);
+              const bond = bonds[index] ?? null;
               return (
                 <li
                   key={v.address}
@@ -74,6 +104,7 @@ export default async function VerifiersPage() {
                         Website
                       </a>
                     )}
+                    <p className="figure text-xs text-ink-muted">{formatVerifierBond(bond)}</p>
                   </div>
                 </li>
               );
