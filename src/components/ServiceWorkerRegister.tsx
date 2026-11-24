@@ -7,9 +7,13 @@ export function ServiceWorkerRegister() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {
-        // Registration failure ignored gracefully
-      });
+      if (process.env.NODE_ENV === 'production') {
+        const buildId = process.env.NEXT_PUBLIC_BUILD_ID;
+        const swUrl = buildId ? `/sw.js?v=${encodeURIComponent(buildId)}` : '/sw.js';
+        navigator.serviceWorker.register(swUrl).catch(() => {
+          // Registration failure ignored gracefully
+        });
+      }
 
       const updateOnlineStatus = () => {
         setIsOffline(!navigator.onLine);

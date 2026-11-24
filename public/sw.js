@@ -1,8 +1,8 @@
-const CACHE_NAME = 'aidline-v1';
+const buildId = new URL(self.location.href).searchParams.get('v') || 'v1';
+const CACHE_NAME = `aidline-${buildId}`;
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [
-  '/',
   '/offline',
   '/brand/aidline-mark.svg',
   '/brand/aidline-mark.png',
@@ -41,7 +41,10 @@ self.addEventListener('fetch', (event) => {
       fetch(event.request).catch(() => {
         return caches.open(CACHE_NAME).then((cache) => {
           return cache.match(OFFLINE_URL).then((offlineResponse) => {
-            return offlineResponse || caches.match('/');
+            return (
+              offlineResponse ||
+              new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } })
+            );
           });
         });
       }),
