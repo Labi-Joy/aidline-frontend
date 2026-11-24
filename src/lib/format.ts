@@ -89,6 +89,50 @@ export function formatDate(iso: string | Date, intlLocale?: string): string {
   }).format(new Date(iso));
 }
 
+/**
+ * Formats a timestamp into a relative human-readable description (e.g., "3 hours ago", "just now").
+ * Accepts a reference `now` date for deterministic testing.
+ *
+ * Time complexity: O(1)
+ * Space complexity: O(1)
+ */
+export function formatRelativeTime(iso: string | Date, now = new Date()): string {
+  const target = typeof iso === 'string' ? new Date(iso) : iso;
+  const elapsedMs = now.getTime() - target.getTime();
+
+  if (Number.isNaN(elapsedMs)) {
+    return '';
+  }
+
+  const elapsedSeconds = Math.floor(elapsedMs / 1000);
+  if (elapsedSeconds < 60) {
+    return 'just now';
+  }
+
+  const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+  if (elapsedMinutes < 60) {
+    return `${elapsedMinutes} minute${elapsedMinutes === 1 ? '' : 's'} ago`;
+  }
+
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+  if (elapsedHours < 24) {
+    return `${elapsedHours} hour${elapsedHours === 1 ? '' : 's'} ago`;
+  }
+
+  const elapsedDays = Math.floor(elapsedHours / 24);
+  if (elapsedDays < 30) {
+    return `${elapsedDays} day${elapsedDays === 1 ? '' : 's'} ago`;
+  }
+
+  const elapsedMonths = Math.floor(elapsedDays / 30);
+  if (elapsedMonths < 12) {
+    return `${elapsedMonths} month${elapsedMonths === 1 ? '' : 's'} ago`;
+  }
+
+  const elapsedYears = Math.floor(elapsedDays / 365);
+  return `${elapsedYears} year${elapsedYears === 1 ? '' : 's'} ago`;
+}
+
 export type DeadlineParts =
   | { kind: 'ended' }
   | { kind: 'today' }

@@ -220,7 +220,13 @@ function query(params: Record<string, string | number | undefined>): string {
 export const api = {
   stats: () => request<Stats>('/stats'),
   campaigns: (
-    params: { kind?: CampaignKind; status?: CampaignStatus; limit?: number; offset?: number } = {},
+    params: {
+      kind?: CampaignKind;
+      status?: CampaignStatus;
+      q?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
   ) => request<{ items: Campaign[]; total: number }>(`/campaigns${query(params)}`),
   campaign: (id: string) => request<CampaignDetail>(`/campaigns/${id}`),
   donations: (

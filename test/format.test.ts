@@ -6,6 +6,7 @@ import {
   deadlineLabel,
   UNKNOWN_AMOUNT,
   formatAmount,
+  formatRelativeTime,
   parseAmount,
   percent,
   shortAddress,
@@ -140,5 +141,38 @@ describe('splitParagraphs', () => {
   it('returns empty array for empty string or only whitespace', () => {
     expect(splitParagraphs('')).toEqual([]);
     expect(splitParagraphs('   \n\n   ')).toEqual([]);
+  });
+});
+
+describe('formatRelativeTime', () => {
+  const baseTime = new Date('2026-10-03T12:00:00Z');
+
+  it('formats recent releases as "just now"', () => {
+    expect(formatRelativeTime('2026-10-03T11:59:30Z', baseTime)).toBe('just now');
+    expect(formatRelativeTime(baseTime, baseTime)).toBe('just now');
+  });
+
+  it('formats minutes ago with proper pluralization', () => {
+    expect(formatRelativeTime('2026-10-03T11:59:00Z', baseTime)).toBe('1 minute ago');
+    expect(formatRelativeTime('2026-10-03T11:15:00Z', baseTime)).toBe('45 minutes ago');
+  });
+
+  it('formats hours ago with proper pluralization', () => {
+    expect(formatRelativeTime('2026-10-03T11:00:00Z', baseTime)).toBe('1 hour ago');
+    expect(formatRelativeTime('2026-10-03T09:00:00Z', baseTime)).toBe('3 hours ago');
+  });
+
+  it('formats days ago with proper pluralization', () => {
+    expect(formatRelativeTime('2026-10-02T12:00:00Z', baseTime)).toBe('1 day ago');
+    expect(formatRelativeTime('2026-09-28T12:00:00Z', baseTime)).toBe('5 days ago');
+  });
+
+  it('formats months and years ago', () => {
+    expect(formatRelativeTime('2026-08-03T12:00:00Z', baseTime)).toBe('2 months ago');
+    expect(formatRelativeTime('2025-10-03T12:00:00Z', baseTime)).toBe('1 year ago');
+  });
+
+  it('returns empty string for invalid date values', () => {
+    expect(formatRelativeTime('invalid-date')).toBe('');
   });
 });

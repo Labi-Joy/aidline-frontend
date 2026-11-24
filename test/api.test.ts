@@ -64,9 +64,9 @@ describe('api requests', () => {
 
   it('builds a query string and drops empty values', async () => {
     const fetchMock = respond(200, { items: [], total: 0 });
-    await api.campaigns({ kind: 'climate', status: undefined, limit: 12, offset: 0 });
+    await api.campaigns({ kind: 'climate', status: undefined, q: 'haiti', limit: 12, offset: 0 });
     const url = String((fetchMock.mock.calls[0] as unknown[])[0]);
-    expect(url).toBe(`${config.apiUrl}/campaigns?kind=climate&limit=12&offset=0`);
+    expect(url).toBe(`${config.apiUrl}/campaigns?kind=climate&q=haiti&limit=12&offset=0`);
   });
 
   it('sends no question mark when there are no parameters', async () => {

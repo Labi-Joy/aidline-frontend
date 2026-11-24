@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 import type { Release } from '@/lib/api';
-import { formatAmount, formatDate } from '@/lib/format';
+import { formatAmount, formatDate, formatRelativeTime } from '@/lib/format';
 import { Notice } from '@/components/ui/Notice';
 import { TxLink } from '@/components/ui/TxLink';
 
@@ -34,8 +34,19 @@ export function ReleaseFeed({ releases }: { releases: Release[] | null }) {
             key={`${r.campaignId}-${r.index}`}
             className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-3 border-b border-rule py-5 md:grid-cols-[7rem_1fr_auto_auto]"
           >
-            <p className="figure col-start-1 row-start-1 text-[0.8125rem] text-ink-muted md:col-auto md:row-auto md:pt-1">
-              {formatDate(r.releasedAt)}
+            <p
+              title={formatDate(r.releasedAt)}
+              className="figure col-start-1 row-start-1 text-[0.8125rem] text-ink-muted md:col-auto md:row-auto md:pt-1"
+            >
+              <time
+                dateTime={
+                  typeof r.releasedAt === 'string'
+                    ? r.releasedAt
+                    : new Date(r.releasedAt).toISOString()
+                }
+              >
+                {formatRelativeTime(r.releasedAt)}
+              </time>
             </p>
             <div className="col-span-2 md:col-span-1">
               <p className="text-[0.6875rem] font-medium uppercase tracking-[0.08em]">
