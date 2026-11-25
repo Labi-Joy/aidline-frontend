@@ -4,7 +4,7 @@ import { useI18n } from '@/components/i18n/I18nProvider';
 import { INTL_TAG } from '@/i18n';
 import { deadlineParts, formatDate } from '@/lib/format';
 
-/** "12 days left", "Ends today" or "Ended 03 Oct 2026", in the reader's language. */
+/** "12 days left", "9 hours left", "Ends within the hour" or "Ended 03 Oct 2026". */
 export function DeadlineLabel({ deadline }: { deadline: string }) {
   const { locale, t, tn } = useI18n();
   const parts = deadlineParts(deadline);
@@ -15,9 +15,11 @@ export function DeadlineLabel({ deadline }: { deadline: string }) {
     <span suppressHydrationWarning>
       {parts.kind === 'ended'
         ? t('deadline.ended', { date: formatDate(deadline, INTL_TAG[locale]) })
-        : parts.kind === 'today'
-          ? t('deadline.today')
-          : tn('deadline.days', parts.days)}
+        : parts.kind === 'withinHour'
+          ? t('deadline.withinHour')
+          : parts.kind === 'hours'
+            ? tn('deadline.hours', parts.hours)
+            : tn('deadline.days', parts.days)}
     </span>
   );
 }
