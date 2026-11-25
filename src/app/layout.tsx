@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   description:
     'Diaspora communities fund relief and climate work back home. Donations are held in escrow and released milestone by milestone, only after an independent verifier confirms the work. Built on Stellar.',
   manifest: '/manifest.webmanifest',
+  icons: {
+    apple: [{ url: '/brand/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
