@@ -10,7 +10,7 @@ import { formatAmount, shortAddress } from '@/lib/format';
 import { useWallet } from './WalletProvider';
 
 export function WalletButton() {
-  const { state, balance, connect, disconnect, error } = useWallet();
+  const { state, balance, connect, disconnect, error, clearError } = useWallet();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -62,6 +62,15 @@ export function WalletButton() {
     };
   }, [open]);
 
+  // #65: Escape dismisses the connect error popup. The error also clears automatically
+  // when a new connect attempt starts, and when the button unmounts.
+  useEffect(() => {
+    if (!error) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && clearError();
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [error, clearError]);
+
   if (state.status === 'loading') {
     return <span className="btn btn-secondary w-[9.5rem] opacity-40" aria-hidden="true" />;
   }
@@ -73,12 +82,23 @@ export function WalletButton() {
           {t('wallet.connect')}
         </button>
         {error && (
-          <p
+          <div
             role="alert"
-            className="absolute right-0 mt-2 w-64 border border-rule bg-paper-raised p-3 text-sm text-danger"
+            // #65: `w-64` was wider than the viewport minus a comfortable gutter on 360px screens.
+            // A max-width keyed off the viewport keeps the popup inside the screen on mobile while
+            // still showing its natural width on desktop.
+            className="absolute right-0 mt-2 flex w-64 max-w-[calc(100vw-2rem)] items-start gap-2 border border-rule bg-paper-raised p-3 text-sm text-danger"
           >
-            {error}
-          </p>
+            <p className="flex-1 break-words">{error}</p>
+            <button
+              type="button"
+              aria-label={t('wallet.dismissError')}
+              onClick={clearError}
+              className="-mr-1 -mt-1 shrink-0 px-1 text-ink-muted hover:text-ink"
+            >
+              ×
+            </button>
+          </div>
         )}
       </div>
     );

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { TxStatus } from '@/components/ui/TxStatus';
 import { useWallet } from '@/components/wallet/WalletProvider';
 import { api, reuseUpload, type CampaignDetail, type CachedUpload } from '@/lib/api';
+import { config } from '@/lib/config';
 import { formatAmount } from '@/lib/format';
 import {
   formatFileSize,
@@ -26,7 +27,7 @@ interface ProofPreview {
 
 /** Lets the campaign's verifier publish evidence and release the next milestone. */
 export function VerifierPanel({ campaign }: { campaign: CampaignDetail }) {
-  const { address, sign } = useWallet();
+  const { address, sign, isWrongNetwork } = useWallet();
   const { state, run, busy } = useTx();
   const [note, setNote] = useState('');
   const [previews, setPreviews] = useState<ProofPreview[]>([]);
@@ -217,10 +218,20 @@ export function VerifierPanel({ campaign }: { campaign: CampaignDetail }) {
           <button
             type="submit"
             className="btn btn-primary w-full"
-            disabled={busy || note.trim().length < 10 || !isProofSelectionValid(files)}
+            disabled={
+              busy ||
+              note.trim().length < 10 ||
+              !isProofSelectionValid(files) ||
+              isWrongNetwork
+            }
           >
             Publish evidence and release {formatAmount(next.amount)}
           </button>
+          {isWrongNetwork && (
+            <p className="text-xs text-danger" role="status">
+              Switch your wallet to {config.network} to continue.
+            </p>
+          )}
           {uploadError && (
             <p role="alert" className="text-[0.9375rem] text-danger">
               {uploadError}

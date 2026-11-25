@@ -33,6 +33,7 @@ interface WalletContextValue {
   refreshBalance: () => void;
   sign: Signer;
   error: string | null;
+  clearError: () => void;
   isWrongNetwork: boolean;
   networkPassphrase: string | null;
   checkNetwork: () => Promise<void>;
@@ -190,6 +191,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     setNetworkPassphrase(null);
   }, []);
 
+  const clearError = useCallback(() => setError(null), []);
+
   const sign = useCallback<Signer>(
     async (txXdr) => {
       const kit = kitRef.current;
@@ -223,6 +226,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       refreshBalance,
       sign,
       error,
+      clearError,
       isWrongNetwork,
       networkPassphrase,
       checkNetwork,
@@ -236,6 +240,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       refreshBalance,
       sign,
       error,
+      clearError,
       isWrongNetwork,
       networkPassphrase,
       checkNetwork,

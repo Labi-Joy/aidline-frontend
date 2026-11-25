@@ -58,7 +58,8 @@ function pledgeStatusLabel(pledge: Pledge): string {
 }
 
 export function DonatePanel({ campaign }: { campaign: CampaignDetail }) {
-  const { address, state: wallet, balance, connect, sign, refreshBalance } = useWallet();
+  const { address, state: wallet, balance, connect, sign, refreshBalance, isWrongNetwork } =
+    useWallet();
   const { state, run, reset, busy } = useTx();
   const { formatFiat } = useFiat();
   const [mode, setMode] = useState<'donate' | 'pledge'>('donate');
@@ -346,7 +347,7 @@ export function DonatePanel({ campaign }: { campaign: CampaignDetail }) {
             <button
               type="submit"
               className="btn btn-primary mt-5 w-full"
-              disabled={busy || Boolean(invalid)}
+              disabled={busy || Boolean(invalid) || isWrongNetwork}
             >
               {amount && !invalid
                 ? `Donate ${formatAmount(amount)}${fiatEstimate ? ` (${fiatEstimate})` : ''}`
@@ -356,7 +357,7 @@ export function DonatePanel({ campaign }: { campaign: CampaignDetail }) {
             <button
               type="submit"
               className="btn btn-primary mt-5 w-full"
-              disabled={busy || Boolean(invalid)}
+              disabled={busy || Boolean(invalid) || isWrongNetwork}
             >
               {amount ? `Approve ${formatAmount(amount)} allowance` : 'Approve allowance'}
             </button>
@@ -364,7 +365,7 @@ export function DonatePanel({ campaign }: { campaign: CampaignDetail }) {
             <button
               type="submit"
               className="btn btn-primary mt-5 w-full"
-              disabled={busy || Boolean(invalid)}
+              disabled={busy || Boolean(invalid) || isWrongNetwork}
             >
               {amount && !invalid ? `Create pledge (${formatAmount(amount)})` : 'Create pledge'}
             </button>
@@ -377,6 +378,12 @@ export function DonatePanel({ campaign }: { campaign: CampaignDetail }) {
           >
             {mode === 'donate' ? 'Connect wallet to donate' : 'Connect wallet to pledge'}
           </button>
+        )}
+
+        {wallet.status === 'connected' && isWrongNetwork && (
+          <p className="mt-2 text-xs text-danger" role="status">
+            Switch your wallet to {config.network} to continue.
+          </p>
         )}
 
         <TxStatus state={state} success={successMessage} />
