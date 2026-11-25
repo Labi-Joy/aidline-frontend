@@ -13,6 +13,7 @@ import {
 import type { Networks } from '@creit.tech/stellar-wallets-kit/types';
 
 import { config } from '@/lib/config';
+import { describeError } from '@/lib/stellar/errors';
 import type { Signer } from '@/lib/stellar/tx';
 
 type Kit = (typeof import('@creit.tech/stellar-wallets-kit/sdk'))['StellarWalletsKit'];
@@ -179,7 +180,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       const message = (err as { message?: string })?.message ?? '';
       // Closing the picker is a choice, not an error.
-      if (!/closed the modal/i.test(message)) setError(message || 'The wallet did not connect.');
+      if (!/closed the modal/i.test(message)) setError(describeError(err));
     }
   }, [checkNetwork]);
 

@@ -15,16 +15,48 @@ export function WalletButton() {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    const items = () =>
+      Array.from(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
     const close = (e: MouseEvent) => {
       if (!menuRef.current?.contains(e.target as Node)) setOpen(false);
     };
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        buttonRef.current?.focus();
+        return;
+      }
+      if (e.key === 'Tab') {
+        setOpen(false);
+        return;
+      }
+      const list = items();
+      if (list.length === 0) return;
+      const active = document.activeElement as HTMLElement | null;
+      const i = active ? list.indexOf(active) : -1;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        list[(i + 1) % list.length]?.focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        list[(i - 1 + list.length) % list.length]?.focus();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        list[0]?.focus();
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        list[list.length - 1]?.focus();
+      }
+    };
+    const raf = requestAnimationFrame(() => items()[0]?.focus());
     document.addEventListener('mousedown', close);
     document.addEventListener('keydown', onKey);
     return () => {
+      cancelAnimationFrame(raf);
       document.removeEventListener('mousedown', close);
       document.removeEventListener('keydown', onKey);
     };
@@ -65,6 +97,7 @@ export function WalletButton() {
   return (
     <div className="relative" ref={menuRef}>
       <button
+        ref={buttonRef}
         type="button"
         className="figure flex h-11 items-stretch border border-ink text-sm text-ink"
         aria-expanded={open}
