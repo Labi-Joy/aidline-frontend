@@ -19,6 +19,12 @@ export function DeadlineLabel({ deadline }: { deadline: string }) {
           ? t('deadline.withinHour')
           : parts.kind === 'hours'
             ? tn('deadline.hours', parts.hours)
+      {parts.kind === 'unknown'
+        ? ''
+        : parts.kind === 'ended'
+          ? t('deadline.ended', { date: formatDate(deadline, INTL_TAG[locale]) })
+          : parts.kind === 'today'
+            ? t('deadline.today')
             : tn('deadline.days', parts.days)}
     </span>
   );

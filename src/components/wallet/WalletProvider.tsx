@@ -13,6 +13,7 @@ import {
 import type { Networks } from '@creit.tech/stellar-wallets-kit/types';
 
 import { config } from '@/lib/config';
+import { describeError } from '@/lib/stellar/errors';
 import type { Signer } from '@/lib/stellar/tx';
 
 type Kit = (typeof import('@creit.tech/stellar-wallets-kit/sdk'))['StellarWalletsKit'];
@@ -32,6 +33,7 @@ interface WalletContextValue {
   refreshBalance: () => void;
   sign: Signer;
   error: string | null;
+  clearError: () => void;
   isWrongNetwork: boolean;
   networkPassphrase: string | null;
   checkNetwork: () => Promise<void>;
@@ -179,7 +181,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       const message = (err as { message?: string })?.message ?? '';
       // Closing the picker is a choice, not an error.
-      if (!/closed the modal/i.test(message)) setError(message || 'The wallet did not connect.');
+      if (!/closed the modal/i.test(message)) setError(describeError(err));
     }
   }, [checkNetwork]);
 
@@ -188,6 +190,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     setState({ status: 'disconnected' });
     setNetworkPassphrase(null);
   }, []);
+
+  const clearError = useCallback(() => setError(null), []);
 
   const sign = useCallback<Signer>(
     async (txXdr) => {
@@ -222,6 +226,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       refreshBalance,
       sign,
       error,
+      clearError,
       isWrongNetwork,
       networkPassphrase,
       checkNetwork,
@@ -235,6 +240,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       refreshBalance,
       sign,
       error,
+      clearError,
       isWrongNetwork,
       networkPassphrase,
       checkNetwork,

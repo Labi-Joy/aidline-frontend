@@ -10,25 +10,66 @@ import { formatAmount, shortAddress } from '@/lib/format';
 import { useWallet } from './WalletProvider';
 
 export function WalletButton() {
-  const { state, balance, connect, disconnect, error } = useWallet();
+  const { state, balance, connect, disconnect, error, clearError } = useWallet();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    const items = () =>
+      Array.from(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
     const close = (e: MouseEvent) => {
       if (!menuRef.current?.contains(e.target as Node)) setOpen(false);
     };
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        buttonRef.current?.focus();
+        return;
+      }
+      if (e.key === 'Tab') {
+        setOpen(false);
+        return;
+      }
+      const list = items();
+      if (list.length === 0) return;
+      const active = document.activeElement as HTMLElement | null;
+      const i = active ? list.indexOf(active) : -1;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        list[(i + 1) % list.length]?.focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        list[(i - 1 + list.length) % list.length]?.focus();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        list[0]?.focus();
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        list[list.length - 1]?.focus();
+      }
+    };
+    const raf = requestAnimationFrame(() => items()[0]?.focus());
     document.addEventListener('mousedown', close);
     document.addEventListener('keydown', onKey);
     return () => {
+      cancelAnimationFrame(raf);
       document.removeEventListener('mousedown', close);
       document.removeEventListener('keydown', onKey);
     };
   }, [open]);
+
+  // #65: Escape dismisses the connect error popup. The error also clears automatically
+  // when a new connect attempt starts, and when the button unmounts.
+  useEffect(() => {
+    if (!error) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && clearError();
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [error, clearError]);
 
   if (state.status === 'loading') {
     return <span className="btn btn-secondary w-[9.5rem] opacity-40" aria-hidden="true" />;
@@ -41,12 +82,23 @@ export function WalletButton() {
           {t('wallet.connect')}
         </button>
         {error && (
-          <p
+          <div
             role="alert"
-            className="absolute right-0 mt-2 w-64 border border-rule bg-paper-raised p-3 text-sm text-danger"
+            // #65: `w-64` was wider than the viewport minus a comfortable gutter on 360px screens.
+            // A max-width keyed off the viewport keeps the popup inside the screen on mobile while
+            // still showing its natural width on desktop.
+            className="absolute right-0 mt-2 flex w-64 max-w-[calc(100vw-2rem)] items-start gap-2 border border-rule bg-paper-raised p-3 text-sm text-danger"
           >
-            {error}
-          </p>
+            <p className="flex-1 break-words">{error}</p>
+            <button
+              type="button"
+              aria-label={t('wallet.dismissError')}
+              onClick={clearError}
+              className="-mr-1 -mt-1 shrink-0 px-1 text-ink-muted hover:text-ink"
+            >
+              ×
+            </button>
+          </div>
         )}
       </div>
     );
@@ -65,6 +117,7 @@ export function WalletButton() {
   return (
     <div className="relative" ref={menuRef}>
       <button
+        ref={buttonRef}
         type="button"
         className="figure flex h-11 items-stretch border border-ink text-sm text-ink"
         aria-expanded={open}

@@ -229,7 +229,8 @@ export const api = {
       offset?: number;
     } = {},
   ) => request<{ items: Campaign[]; total: number }>(`/campaigns${query(params)}`),
-  campaign: (id: string) => request<CampaignDetail>(`/campaigns/${id}`),
+  campaign: (id: string) =>
+    request<CampaignDetail>(`/campaigns/${encodeURIComponent(id)}`),
   donations: (
     id: string,
     limitOrParams: number | { limit?: number; offset?: number } = 20,
@@ -240,13 +241,15 @@ export const api = {
         ? { limit: limitOrParams, offset }
         : limitOrParams;
     return request<{ items: Donation[]; total?: number }>(
-      `/campaigns/${id}/donations${query(params)}`,
+      `/campaigns/${encodeURIComponent(id)}/donations${query(params)}`,
     );
   },
   releases: (limit = 6) => request<{ items: Release[] }>(`/releases${query({ limit })}`),
   verifiers: () => request<{ items: Verifier[] }>('/verifiers'),
-  verifier: (address: string) => request<Verifier & { active: boolean }>(`/verifiers/${address}`),
-  donor: (address: string) => request<DonorHistory>(`/donors/${address}`),
+  verifier: (address: string) =>
+    request<Verifier & { active: boolean }>(`/verifiers/${encodeURIComponent(address)}`),
+  donor: (address: string) =>
+    request<DonorHistory>(`/donors/${encodeURIComponent(address)}`),
 
   createMetadata: (body: {
     title: string;

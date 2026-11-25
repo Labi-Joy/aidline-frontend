@@ -91,6 +91,29 @@ describe('api requests', () => {
     );
   });
 
+  it('encodes path params so slashes and reserved characters cannot escape the route', async () => {
+    const fetchMock = respond(200, {});
+    await api.campaign('1/..?x=stats');
+    expect(String((fetchMock.mock.calls[0] as unknown[])[0])).toBe(
+      `${config.apiUrl}/campaigns/1%2F..%3Fx%3Dstats`,
+    );
+
+    await api.donations('1/../stats');
+    expect(String((fetchMock.mock.calls[1] as unknown[])[0])).toBe(
+      `${config.apiUrl}/campaigns/1%2F..%2Fstats/donations?limit=20`,
+    );
+
+    await api.verifier('G../?');
+    expect(String((fetchMock.mock.calls[2] as unknown[])[0])).toBe(
+      `${config.apiUrl}/verifiers/G..%2F%3F`,
+    );
+
+    await api.donor('G/x?y');
+    expect(String((fetchMock.mock.calls[3] as unknown[])[0])).toBe(
+      `${config.apiUrl}/donors/G%2Fx%3Fy`,
+    );
+  });
+
   it('posts JSON for metadata', async () => {
     const fetchMock = respond(201, { id: 'abc', uri: 'http://x/metadata/abc' });
     await api.createMetadata({ title: 'T', summary: 'S', description: 'D', location: 'L' });

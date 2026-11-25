@@ -5,12 +5,13 @@ import { useState } from 'react';
 import { TxStatus } from '@/components/ui/TxStatus';
 import { useWallet } from '@/components/wallet/WalletProvider';
 import { api, type CampaignDetail } from '@/lib/api';
+import { config } from '@/lib/config';
 import { aidline } from '@/lib/stellar/tx';
 import { useTx } from '@/lib/useTx';
 
 /** Lets the campaign creator stop a campaign, which opens refunds for donors. */
 export function CreatorPanel({ campaign }: { campaign: CampaignDetail }) {
-  const { address, sign } = useWallet();
+  const { address, sign, isWrongNetwork } = useWallet();
   const { state, run, busy } = useTx();
   const [confirming, setConfirming] = useState(false);
 
@@ -37,7 +38,7 @@ export function CreatorPanel({ campaign }: { campaign: CampaignDetail }) {
             <button
               type="button"
               className="btn btn-primary"
-              disabled={busy}
+              disabled={busy || isWrongNetwork}
               onClick={() =>
                 void run(
                   (on) => aidline.cancelCampaign(address, campaign.id, sign, on),
@@ -56,6 +57,11 @@ export function CreatorPanel({ campaign }: { campaign: CampaignDetail }) {
               Keep it open
             </button>
           </div>
+          {isWrongNetwork && (
+            <p className="mt-2 text-xs text-danger" role="status">
+              Switch your wallet to {config.network} to continue.
+            </p>
+          )}
         </div>
       )}
       <TxStatus
