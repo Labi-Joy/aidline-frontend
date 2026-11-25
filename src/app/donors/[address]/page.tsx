@@ -107,6 +107,43 @@ export default async function DonorPage(props: PageProps<'/donors/[address]'>) {
               </ul>
             )}
           </section>
+
+          <section className="mt-12">
+            <h2 className="text-[1.75rem]">Refunds</h2>
+            {history.refunds.length === 0 ? (
+              <p className="mt-4 text-ink-muted">No refunds from this wallet yet.</p>
+            ) : (
+              <ul className="mt-6 border-t border-rule" aria-label="Refunds">
+                {history.refunds.map((r) => {
+                  const campaignTitle = history.donations.find(
+                    (d) => d.campaignId === r.campaignId,
+                  )?.campaignTitle;
+                  return (
+                    <li
+                      key={`${r.txHash}-${r.campaignId}`}
+                      className="grid gap-2 border-b border-rule py-5 md:grid-cols-[1fr_auto] md:gap-8"
+                    >
+                      <div>
+                        <p className="text-[0.6875rem] font-medium uppercase tracking-[0.08em] text-ink-muted">
+                          Reclaimed / <time dateTime={r.createdAt}>{formatDate(r.createdAt)}</time>
+                        </p>
+                        <Link
+                          href={`/campaigns/${r.campaignId}`}
+                          className="mt-1 block font-serif text-lg text-ink hover:underline"
+                        >
+                          {campaignTitle ?? `Campaign #${r.campaignId}`}
+                        </Link>
+                      </div>
+                      <div className="md:text-right">
+                        <p className="figure text-ink">{formatAmount(r.amount)}</p>
+                        <TxLink hash={r.txHash} />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
         </>
       )}
     </Container>
