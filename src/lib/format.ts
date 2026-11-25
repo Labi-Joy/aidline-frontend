@@ -78,15 +78,27 @@ const dateFmt = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'UTC',
 });
 
-/** Formats a date as "03 Oct 2026". Pass an Intl locale tag to use another language's month names. */
+/** Returns `null` for empty strings, invalid Date values, or inputs that `new Date` cannot parse. */
+function safeDate(iso: string | Date): Date | null {
+  if (typeof iso === 'string' && iso.trim() === '') return null;
+  const d = iso instanceof Date ? iso : new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Formats a date as "03 Oct 2026". Pass an Intl locale tag to use another language's month names.
+ * Returns an empty string for invalid input so one bad API date cannot take a whole page down.
+ */
 export function formatDate(iso: string | Date, intlLocale?: string): string {
-  if (!intlLocale) return dateFmt.format(new Date(iso));
+  const date = safeDate(iso);
+  if (!date) return '';
+  if (!intlLocale) return dateFmt.format(date);
   return new Intl.DateTimeFormat(intlLocale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     timeZone: 'UTC',
-  }).format(new Date(iso));
+  }).format(date);
 }
 
 /**
@@ -136,19 +148,26 @@ export function formatRelativeTime(iso: string | Date, now = new Date()): string
 export type DeadlineParts =
   | { kind: 'ended' }
   | { kind: 'today' }
-  | { kind: 'days'; days: number };
+  | { kind: 'days'; days: number }
+  | { kind: 'unknown' };
 
-/** The deadline as data, so each language can word it: ended, ends today, or N whole days left. */
+/**
+ * The deadline as data, so each language can word it: ended, ends today, N whole days left,
+ * or `unknown` when the input is not a valid date.
+ */
 export function deadlineParts(iso: string, now = new Date()): DeadlineParts {
-  const ms = new Date(iso).getTime() - now.getTime();
+  const date = safeDate(iso);
+  if (!date) return { kind: 'unknown' };
+  const ms = date.getTime() - now.getTime();
   if (ms < 0) return { kind: 'ended' };
   const days = Math.floor(ms / 86_400_000);
   return days === 0 ? { kind: 'today' } : { kind: 'days', days };
 }
 
-/** "12 days left", "Ends today", "Ended 3 Oct 2026" */
+/** "12 days left", "Ends today", "Ended 3 Oct 2026", or "" for an invalid input. */
 export function deadlineLabel(iso: string, now = new Date()): string {
   const parts = deadlineParts(iso, now);
+  if (parts.kind === 'unknown') return '';
   if (parts.kind === 'ended') return `Ended ${formatDate(iso)}`;
   if (parts.kind === 'today') return 'Ends today';
   return `${parts.days} day${parts.days === 1 ? '' : 's'} left`;

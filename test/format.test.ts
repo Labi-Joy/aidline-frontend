@@ -4,6 +4,7 @@ import {
   amountInput,
   capAmount,
   deadlineLabel,
+  formatDate,
   UNKNOWN_AMOUNT,
   formatAmount,
   formatRelativeTime,
@@ -120,6 +121,22 @@ describe('deadlineLabel', () => {
   });
   it('shows the end date once passed', () => {
     expect(deadlineLabel('2026-10-01T00:00:00Z', now)).toBe('Ended 01 Oct 2026');
+  });
+  it('returns an empty string for invalid or empty dates', () => {
+    expect(deadlineLabel('', now)).toBe('');
+    expect(deadlineLabel('not-a-date', now)).toBe('');
+    expect(deadlineLabel('2026-13-99', now)).toBe('');
+  });
+});
+
+describe('formatDate', () => {
+  it('formats a valid ISO string', () => {
+    expect(formatDate('2026-10-01T00:00:00Z')).toBe('01 Oct 2026');
+  });
+  it('returns an empty string for invalid or empty input instead of throwing', () => {
+    expect(formatDate('')).toBe('');
+    expect(formatDate('not-a-date')).toBe('');
+    expect(formatDate(new Date('invalid'))).toBe('');
   });
 });
 

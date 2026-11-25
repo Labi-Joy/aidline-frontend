@@ -13,11 +13,13 @@ export function DeadlineLabel({ deadline }: { deadline: string }) {
   // a day boundary, and the browser's value is the right one, so the mismatch is allowed.
   return (
     <span suppressHydrationWarning>
-      {parts.kind === 'ended'
-        ? t('deadline.ended', { date: formatDate(deadline, INTL_TAG[locale]) })
-        : parts.kind === 'today'
-          ? t('deadline.today')
-          : tn('deadline.days', parts.days)}
+      {parts.kind === 'unknown'
+        ? ''
+        : parts.kind === 'ended'
+          ? t('deadline.ended', { date: formatDate(deadline, INTL_TAG[locale]) })
+          : parts.kind === 'today'
+            ? t('deadline.today')
+            : tn('deadline.days', parts.days)}
     </span>
   );
 }

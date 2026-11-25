@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { TxStatus } from '@/components/ui/TxStatus';
 import { useWallet } from '@/components/wallet/WalletProvider';
 import { api, donorPosition, type CampaignDetail } from '@/lib/api';
+import { config } from '@/lib/config';
 import { formatAmount } from '@/lib/format';
 import { refundEstimate } from '@/lib/refund';
 import { contributionOf } from '@/lib/stellar/balance';
@@ -26,7 +27,7 @@ interface Lookup {
 
 /** Shown on cancelled or expired campaigns so donors can reclaim unspent funds. */
 export function RefundPanel({ campaign }: { campaign: CampaignDetail }) {
-  const { address, sign } = useWallet();
+  const { address, sign, isWrongNetwork } = useWallet();
   const { state, run, busy } = useTx();
   const [lookup, setLookup] = useState<Lookup | null>(null);
   const [retry, setRetry] = useState(0);
@@ -125,7 +126,7 @@ export function RefundPanel({ campaign }: { campaign: CampaignDetail }) {
       <button
         type="button"
         className="btn btn-primary mt-5 w-full"
-        disabled={busy || position.estimate === 0n}
+        disabled={busy || position.estimate === 0n || isWrongNetwork}
         onClick={() =>
           void run(
             (on) => aidline.refund(address, campaign.id, sign, on),
@@ -138,6 +139,11 @@ export function RefundPanel({ campaign }: { campaign: CampaignDetail }) {
       >
         Reclaim{position.fromContract ? '' : ' estimated'} {formatAmount(position.estimate)}
       </button>
+      {isWrongNetwork && (
+        <p className="mt-2 text-xs text-danger" role="status">
+          Switch your wallet to {config.network} to continue.
+        </p>
+      )}
       <TxStatus state={state} success="Your unspent share has been returned to your wallet." />
     </div>
   );

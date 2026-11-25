@@ -44,6 +44,7 @@ export const en = {
   'wallet.myGiving': 'My giving',
   'wallet.viewOnExplorer': 'View on explorer',
   'wallet.disconnect': 'Disconnect',
+  'wallet.dismissError': 'Dismiss',
 
   'campaign.fallbackTitle': 'Campaign #{id}',
   'card.unknownLocation': 'Unknown location',
@@ -141,6 +142,7 @@ export const fr: Record<MessageKey, string> = {
   'wallet.myGiving': 'Mes dons',
   'wallet.viewOnExplorer': "Voir sur l'explorateur",
   'wallet.disconnect': 'Déconnecter',
+  'wallet.dismissError': 'Fermer',
 
   'campaign.fallbackTitle': 'Campagne n° {id}',
   'card.unknownLocation': 'Lieu inconnu',
@@ -236,6 +238,7 @@ export const es: Record<MessageKey, string> = {
   'wallet.myGiving': 'Mis donaciones',
   'wallet.viewOnExplorer': 'Ver en el explorador',
   'wallet.disconnect': 'Desconectar',
+  'wallet.dismissError': 'Cerrar',
 
   'campaign.fallbackTitle': 'Campaña n.º {id}',
   'card.unknownLocation': 'Ubicación desconocida',
